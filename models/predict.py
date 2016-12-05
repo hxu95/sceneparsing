@@ -26,7 +26,7 @@ models_dir = os.path.join(base_dir, 'models')
 #sys.path.append('/home/hxu/caffe/python')
 
 # define model and weights
-model_type = 'FCN' # Dilated'
+model_type = 'Dilated' # Dilated'
 if (model_type is 'FCN'):
   model_definition = 'test_FCN.prototxt'
   #model_weights = os.path.join(models_dir, 'FCN_iter_160000.caffemodel')
@@ -48,8 +48,8 @@ net = caffe.Net(model_definition, model_weights, caffe.TEST)
 transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
 
 # load input images that we want to do segmentation on
-#inputs = os.path.join(base_dir, 'sampleData/intermediate')
-inputs = os.path.join(base_dir, 'sampleData/images')
+inputs = os.path.join(base_dir, 'sampleData/intermediate')
+#inputs = os.path.join(base_dir, 'sampleData/images')
 
 # loop through input images
 for filename in os.listdir(inputs):
@@ -73,7 +73,7 @@ for filename in os.listdir(inputs):
   # Reshape and fill input with the image
   net.blobs['data'].reshape(1, 3, *img.shape[:2])
   net.blobs['data'].data[0, ...] = np.rollaxis(img, 2)
-  # Predict and get the outputs albedo and shading
+  # Predict and get the outputs
   out = net.forward()
 
   if (model_type is 'FCN'):
@@ -82,9 +82,8 @@ for filename in os.listdir(inputs):
     a = out['fc_final_up'].copy()
   a = a[0]
   out_a = np.argmax(a, axis=0)
-  #out_a = np.transpose(out_a)
+  out_a = np.transpose(out_a)
   out_a = out_a.astype(np.uint8) - 1
-  print img.shape
   out_a = scipy.misc.imresize(out_a, (img.shape[0], img.shape[1])) 
 
   outfile = os.path.join(prediction_folder, filename)
